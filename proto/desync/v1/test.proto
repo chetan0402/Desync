@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package desync.v1;
+
+message Test {
+    bool test = 1;
+}
+
+service AdminService {
+    rpc GetTest(GetTestRequest) returns (Test);
+}
+
+message GetTestRequest {
+    bool test = 1;
+}

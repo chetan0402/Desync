@@ -1,0 +1,46 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: backend
+    env_file:
+      - ./cmd/desync/.env
+    depends_on:
+      pgdb:
+        condition: service_healthy
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: frontend
+    depends_on:
+      - backend
+  nginx:
+    image: nginx:latest
+    ports:
+      - "5002:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    restart: always
+    depends_on:
+      - frontend
+      - backend
+  pgdb:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: desync
+      POSTGRES_PASSWORD: desync
+      POSTGRES_DB: desync
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    container_name: pgdb
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "desync"]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  pgdata:
